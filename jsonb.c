@@ -130,19 +130,19 @@ void jsonbAddBin(jsonbContext *ctx, uint8_t *bin, uint32_t binLen)
 }
 
 // Append integers to an array
-void jsonbAddInt8(jsonbContext *ctx, uint8_t v)
+void jsonbAddInt8(jsonbContext *ctx, int8_t v)
 {
     jbAppend8(ctx, JSONB_INT8, v);
 }
-void jsonbAddInt16(jsonbContext *ctx, uint16_t v)
+void jsonbAddInt16(jsonbContext *ctx, int16_t v)
 {
     jbAppend16(ctx, JSONB_INT16, v);
 }
-void jsonbAddInt32(jsonbContext *ctx, uint32_t v)
+void jsonbAddInt32(jsonbContext *ctx, int32_t v)
 {
     jbAppend32(ctx, JSONB_INT32, v);
 }
-void jsonbAddInt64(jsonbContext *ctx, uint32_t v)
+void jsonbAddInt64(jsonbContext *ctx, int64_t v)
 {
     jbAppend64(ctx, JSONB_INT64, v);
 }
@@ -160,7 +160,7 @@ void jsonbAddUint32(jsonbContext *ctx, uint32_t v)
 {
     jbAppend32(ctx, JSONB_UINT32, v);
 }
-void jsonbAddUint64(jsonbContext *ctx, uint32_t v)
+void jsonbAddUint64(jsonbContext *ctx, uint64_t v)
 {
     jbAppend64(ctx, JSONB_UINT64, v);
 }
@@ -267,7 +267,7 @@ void jsonbAddUint32ToObject(jsonbContext *ctx, const char *itemName, uint32_t v)
     jsonbAddItemToObject(ctx, itemName);
     jsonbAddUint32(ctx, v);
 }
-void jsonbAddUint64ToObject(jsonbContext *ctx, const char *itemName, uint32_t v)
+void jsonbAddUint64ToObject(jsonbContext *ctx, const char *itemName, uint64_t v)
 {
     jsonbAddItemToObject(ctx, itemName);
     jsonbAddUint64(ctx, v);
