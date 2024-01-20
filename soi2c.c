@@ -73,7 +73,7 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         }
 
         ctx->buf[0] = chunklen;
-        if (!ctx->tx(ctx->addr, ctx->buf, 1+chunklen)) {
+        if (!ctx->tx(ctx->port, ctx->addr, ctx->buf, 1+chunklen)) {
             return SOI2C_IO_TRANSMIT;
         }
         ctx->delay(250);
@@ -109,13 +109,13 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         // Issue special write transaction that is a 'read will come next' transaction
         ctx->buf[ctx->bufused+0] = 0;
         ctx->buf[ctx->bufused+1] = chunklen;
-        if (!ctx->tx(ctx->addr, &ctx->buf[ctx->bufused], hdrlen)) {
+        if (!ctx->tx(ctx->port, ctx->addr, &ctx->buf[ctx->bufused], hdrlen)) {
             return SOI2C_IO_TRANSMIT;
         }
         ctx->delay(1);
 
         // Receive the chunk of data
-        if (!ctx->rx(ctx->addr, &ctx->buf[ctx->bufused], chunklen + hdrlen)) {
+        if (!ctx->rx(ctx->port, ctx->addr, &ctx->buf[ctx->bufused], chunklen + hdrlen)) {
             return SOI2C_IO_TRANSMIT;
         }
         ctx->delay(5);
@@ -127,15 +127,15 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
             return SOI2C_IO_BAD_SIZE_RETURNED;
         }
 
+        // Look at what has just been received for a terminator, and stop if found
+        bool receivedNewline = (memchr(&ctx->buf[ctx->bufused+2], '\n', chunklen) != NULL);
+
         // Only move bytes into the response buffer if a nonzero length specified,
         // else just flush it.
         if ((flags & SOI2C_IGNORE_RESPONSE) == 0 && chunklen > 0) {
             memmove(&ctx->buf[ctx->bufused], &ctx->buf[ctx->bufused+2], chunklen);
             ctx->bufused += chunklen;
         }
-
-        // Look at what has just been received for a terminator, and stop if found
-        bool receivedNewline = (memchr(ctx->buf, '\n', ctx->bufused) != NULL);
 
         // Attempt to receive all available bytes in the next chunk
         chunklen = availableBytes;

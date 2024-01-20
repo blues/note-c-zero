@@ -19,11 +19,12 @@
 #define SOI2C_IO_BAD_SIZE_RETURNED  8
 typedef int soiStatus_t;
 
-typedef bool (*i2cTransmitFn) (uint16_t devAddr, uint8_t *buf, uint16_t buflen);
-typedef bool (*i2cReceiveFn) (uint16_t devAddr, uint8_t *buf, uint16_t buflen);
+typedef bool (*i2cTransmitFn) (void *port, uint16_t devAddr, uint8_t *buf, uint16_t buflen);
+typedef bool (*i2cReceiveFn) (void *port, uint16_t devAddr, uint8_t *buf, uint16_t buflen);
 typedef void (*i2cDelayFn) (uint32_t ms);
 typedef bool (*i2cBufGrowFn) (uint8_t **buf, uint32_t *buflen, uint32_t neededBytes);
 typedef struct {
+    void *port;
     uint16_t addr;
     i2cTransmitFn tx;
     i2cReceiveFn rx;

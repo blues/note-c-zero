@@ -69,8 +69,11 @@ typedef struct {
 } jsonbContext;
 
 void jsonbFormatBegin(jsonbContext *ctx, uint8_t *buf, uint32_t buflen, bufGrowFn bufGrow);
-void jsonbFormatEnd(jsonbContext *ctx);
+uint32_t jsonbFormatEnd(jsonbContext *ctx);
 uint32_t jsonbBuf(jsonbContext *ctx, uint8_t **buf, uint32_t *buflen);
+
+void jsonbObjectBegin(jsonbContext *ctx, uint8_t *buf, uint32_t buflen, bufGrowFn bufGrow);
+uint32_t jsonbObjectEnd(jsonbContext *ctx);
 
 void jsonbAddObjectBegin(jsonbContext *ctx);
 void jsonbAddObjectEnd(jsonbContext *ctx);

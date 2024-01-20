@@ -26,21 +26,24 @@ uint32_t jbCobsGuaranteedFit(uint32_t buflen);
 // grow function has been specified, the "ctx.buf" and "ctx.buflen" will also change.
 void jsonbFormatBegin(jsonbContext *ctx, uint8_t *buf, uint32_t buflen, bufGrowFn bufGrow)
 {
+
+    // Init context
     ctx->growFn = bufGrow;
     ctx->buf = buf;
     ctx->buflen = buflen;
     ctx->bufused = 0;
     ctx->overrun = false;
     ctx->error = false;
+
 }
 
 // End the cobs encoding, returning how many bytes are in the buffer
-void jsonbFormatEnd(jsonbContext *ctx)
+uint32_t jsonbFormatEnd(jsonbContext *ctx)
 {
 
     // Exit if overrun
     if (ctx->overrun || ctx->error) {
-        return;
+        return 0;
     }
 
     // The length must account for the JSONB_HEADER, JSONB_TRAILER, \n
@@ -50,7 +53,7 @@ void jsonbFormatEnd(jsonbContext *ctx)
     // Compute the amount that we'll need for an encoded buffer
     uint32_t maxExpansionByEncoding = buflenWithoutSig - jbCobsGuaranteedFit(buflenWithoutSig);
     if (ctx->bufused + maxExpansionByEncoding > buflenWithoutSig) {
-        return;
+        return 0;
     }
 
     // Shift the entire buffer higher in memory so that it can be encoded downward
@@ -66,6 +69,9 @@ void jsonbFormatEnd(jsonbContext *ctx)
     ctx->bufused = (sizeof(JSONB_HEADER)-1) + cobslen + (sizeof(JSONB_TRAILER)-1);
     ctx->buf[ctx->bufused++] = JSONB_TERMINATOR;
 
+    // Return the amount used
+    return ctx->bufused;
+
 }
 
 // Get buffer info
@@ -78,6 +84,30 @@ uint32_t jsonbBuf(jsonbContext *ctx, uint8_t **buf, uint32_t *buflen)
         *buflen = ctx->buflen;
     }
     return ctx->bufused;
+}
+
+// Begin creating a root object
+void jsonbObjectBegin(jsonbContext *ctx, uint8_t *buf, uint32_t buflen, bufGrowFn bufGrow)
+{
+
+    // Init the buffer
+    jsonbFormatBegin(ctx, buf, buflen, bufGrow);
+
+    // Add the root object
+    jsonbAddObjectBegin(ctx);
+
+}
+
+// End the cobs encoding, returning how many bytes are in the buffer
+uint32_t jsonbObjectEnd(jsonbContext *ctx)
+{
+
+    // Terminate the root object
+    jsonbAddObjectEnd(ctx);
+
+    // Done with encoding
+    return jsonbFormatEnd(ctx);
+
 }
 
 // Append an object
