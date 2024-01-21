@@ -12,7 +12,7 @@
 #define JSONB_HEADER                "{:"
 #define JSONB_TRAILER               ":}"
 #define JSONB_TERMINATOR            '\n'
-#define jsonbPresent(x,y)             ((y) > sizeof(JSONB_HEADER-1) && memcmp((x), JSONB_HEADER, sizeof(JSONB_HEADER)-1) == 0)
+#define jsonbPresent(x,y)             (((y) > sizeof(JSONB_HEADER)-1) && memcmp((x), JSONB_HEADER, sizeof(JSONB_HEADER)-1) == 0)
 
 // JSONB opcodes used for formatting and parsing
 #define JSONB_INVALID               0x00
