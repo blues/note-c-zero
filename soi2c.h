@@ -8,16 +8,18 @@
 
 #pragma once
 
-#define SOI2C_OK                    0
-#define SOI2C_CONFIG                1
-#define SOI2C_TERMINATOR            2
-#define SOI2C_TX_BUFFER_OVERFLOW    3
-#define SOI2C_RX_BUFFER_OVERFLOW    4
-#define SOI2C_IO_TRANSMIT           5
-#define SOI2C_IO_RECEIVE            6
-#define SOI2C_IO_TIMEOUT            7
-#define SOI2C_IO_BAD_SIZE_RETURNED  8
-typedef int soiStatus_t;
+#define SOI2C_DEFAULT_I2C_ADDR      0x17        // Notecard
+
+#define STATUS_OK                    0
+#define STATUS_CONFIG                1
+#define STATUS_TERMINATOR            2
+#define STATUS_TX_BUFFER_OVERFLOW    3
+#define STATUS_RX_BUFFER_OVERFLOW    4
+#define STATUS_IO_TRANSMIT           5
+#define STATUS_IO_RECEIVE            6
+#define STATUS_IO_TIMEOUT            7
+#define STATUS_IO_BAD_SIZE_RETURNED  8
+typedef int soi2cStatus_t;
 
 typedef bool (*i2cTransmitFn) (void *port, uint16_t devAddr, uint8_t *buf, uint16_t buflen);
 typedef bool (*i2cReceiveFn) (void *port, uint16_t devAddr, uint8_t *buf, uint16_t buflen);

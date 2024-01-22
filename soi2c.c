@@ -5,7 +5,7 @@
 #include "soi2c.h"
 
 // Reset the state4 of things by sending a \n to flush anything pending
-// on the notecard from before this host was reset.  This ensures that
+// on the i2c peripheral from before this host was reset.  This ensures that
 // our first transaction will be received cleanly.
 int soi2cReset(soi2cContext_t *ctx)
 {
@@ -35,12 +35,12 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
 
     // Default i2c address to the notecard
     if (ctx->addr == 0) {
-        ctx->addr = 0x17;
+        ctx->addr = SOI2C_DEFAULT_I2C_ADDR;
     }
 
     // Exit if not configured
     if (ctx->tx == NULL || ctx->rx == NULL || ctx->delay == NULL || buflen < 5) {
-        return SOI2C_CONFIG;
+        return STATUS_CONFIG;
     }
 
     // Exit if request isn't newline-terminated
@@ -54,12 +54,12 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         }
     }
     if (ctx->bufused == 0) {
-        return SOI2C_TERMINATOR;
+        return STATUS_TERMINATOR;
     }
 
     // Begin by shifting the req in the buf to allow space for the transmit header
     if ((ctx->buflen - ctx->bufused) < 1) {
-        return SOI2C_TX_BUFFER_OVERFLOW;
+        return STATUS_TX_BUFFER_OVERFLOW;
     }
     memmove(&ctx->buf[1], ctx->buf, ctx->bufused);
 
@@ -74,7 +74,7 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
 
         ctx->buf[0] = chunklen;
         if (!ctx->tx(ctx->port, ctx->addr, ctx->buf, 1+chunklen)) {
-            return SOI2C_IO_TRANSMIT;
+            return STATUS_IO_TRANSMIT;
         }
         ctx->delay(250);
 
@@ -85,7 +85,7 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
 
     // Exit if a "cmd" was sent and no response is expected.
     if ((flags & SOI2C_NO_RESPONSE) != 0) {
-        return SOI2C_OK;
+        return STATUS_OK;
     }
 
     // Go into a receive loop, using the txbuf as a (potentially-growing) rxbuf.
@@ -110,13 +110,13 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         ctx->buf[ctx->bufused+0] = 0;
         ctx->buf[ctx->bufused+1] = chunklen;
         if (!ctx->tx(ctx->port, ctx->addr, &ctx->buf[ctx->bufused], hdrlen)) {
-            return SOI2C_IO_TRANSMIT;
+            return STATUS_IO_TRANSMIT;
         }
         ctx->delay(1);
 
         // Receive the chunk of data
         if (!ctx->rx(ctx->port, ctx->addr, &ctx->buf[ctx->bufused], chunklen + hdrlen)) {
-            return SOI2C_IO_TRANSMIT;
+            return STATUS_IO_TRANSMIT;
         }
         ctx->delay(5);
 
@@ -124,7 +124,7 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         uint8_t availableBytes = ctx->buf[ctx->bufused+0];
         uint8_t returnedBytes = ctx->buf[ctx->bufused+1];
         if (returnedBytes != chunklen) {
-            return SOI2C_IO_BAD_SIZE_RETURNED;
+            return STATUS_IO_BAD_SIZE_RETURNED;
         }
 
         // Look at what has just been received for a terminator, and stop if found
@@ -153,7 +153,7 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
         // If no time left to process the transaction, give up
         uint32_t pollMs = 50;
         if (msLeftToWait < pollMs) {
-            return SOI2C_IO_TIMEOUT;
+            return STATUS_IO_TIMEOUT;
         }
 
         // Delay, and subtract from what's left
@@ -163,6 +163,6 @@ int soi2cTransaction(soi2cContext_t *ctx, uint32_t flags, uint8_t *buf, uint32_t
     }
 
     // Done
-    return SOI2C_OK;
+    return STATUS_OK;
 
 }
